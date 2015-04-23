@@ -35,7 +35,7 @@ namespace MongoMigration
 
         protected override TStruct ReadValue(IBsonReader bsonReader, Type actualType)
         {
-            var obj = (TStruct)Activator.CreateInstance(actualType);
+            var obj = Activator.CreateInstance(actualType);
 
             while (IsDocumentEnd(bsonReader))
             {
@@ -44,7 +44,7 @@ namespace MongoMigration
                 TryFillProperty(bsonReader, actualType, fieldName, obj);
             }
 
-            return obj;
+            return (TStruct)obj;
         }
 
         private static bool IsDocumentEnd(IBsonReader bsonReader)
