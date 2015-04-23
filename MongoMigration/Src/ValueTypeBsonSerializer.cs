@@ -8,18 +8,18 @@ using MongoDB.Bson.Serialization;
 
 namespace MongoMigration
 {
-    public class ValueTypeBsonSerializer : DocumentBsonSerializerBase 
+    public class ValueTypeBsonSerializer<TStruct> : DocumentBsonSerializerBase<TStruct>
     {
         private const BindingFlags BindingFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
-        
-        protected override void Serialize(BsonWriter bsonWriter, object value)
+
+        protected override void Serialize(IBsonWriter bsonWriter, TStruct value)
         {
             var actualType = value.GetType();
 
             WriteAllProperties(bsonWriter, value, actualType);
         }
 
-        private static void WriteAllProperties(BsonWriter bsonWriter, object value, Type actualType)
+        private static void WriteAllProperties(IBsonWriter bsonWriter, object value, Type actualType)
         {
             foreach (var property in GetAllProperties(actualType))
             {
@@ -33,9 +33,9 @@ namespace MongoMigration
             return actualType.GetProperties(BindingFlags).Where(o => o.CanWrite);
         }
 
-        protected override object ReadValue(BsonReader bsonReader, Type actualType)
+        protected override TStruct ReadValue(IBsonReader bsonReader, Type actualType)
         {
-            var obj = Activator.CreateInstance(actualType);
+            var obj = (TStruct)Activator.CreateInstance(actualType);
 
             while (IsDocumentEnd(bsonReader))
             {
@@ -47,12 +47,12 @@ namespace MongoMigration
             return obj;
         }
 
-        private static bool IsDocumentEnd(BsonReader bsonReader)
+        private static bool IsDocumentEnd(IBsonReader bsonReader)
         {
             return bsonReader.ReadBsonType() != BsonType.EndOfDocument;
         }
 
-        private static void TryFillProperty(BsonReader bsonReader, Type actualType, string name, object obj)
+        private static void TryFillProperty(IBsonReader bsonReader, Type actualType, string name, object obj)
         {
             var property = TryGetProperty(actualType, name);
             if (property != null)
@@ -71,7 +71,7 @@ namespace MongoMigration
             return actualType.GetProperty(name, BindingFlags);
         }
 
-        private static object ReadValueOfProperty(BsonReader bsonReader, Type typeOfValue)
+        private static object ReadValueOfProperty(IBsonReader bsonReader, Type typeOfValue)
         {
             return BsonSerializer.Deserialize(bsonReader, typeOfValue);
         }

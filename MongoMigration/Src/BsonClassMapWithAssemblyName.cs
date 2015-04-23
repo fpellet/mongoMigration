@@ -1,16 +1,14 @@
-using System;
 using MongoDB.Bson.Serialization;
 
 namespace MongoMigration
 {
-    public class BsonClassMapWithAssemblyName : BsonClassMap
+    public class BsonClassMapWithAssemblyName<T> : BsonClassMap<T>
     {
-        public BsonClassMapWithAssemblyName(Type classType)
-            : base(classType)
+        public BsonClassMapWithAssemblyName()
         {
             AutoMap();
-            var assemblyName = classType.Assembly.GetName().Name;
-            SetDiscriminator(classType.Name + "," + assemblyName);
+            var assemblyName = typeof(T).Assembly.GetName().Name;
+            SetDiscriminator(typeof(T).Name + "," + assemblyName);
             SetIgnoreExtraElements(true);
         }
     }

@@ -4,22 +4,22 @@ using MongoDB.Bson.Serialization;
 
 namespace MongoMigration
 {
-    public class EnumBsonSerializer : DocumentBsonSerializerBase
+    public class EnumBsonSerializer<TEnum> : DocumentBsonSerializerBase<TEnum>
     {
         private const string ValueFieldName = "_v";
 
-        protected override void Serialize(BsonWriter bsonWriter, object value)
+        protected override void Serialize(IBsonWriter bsonWriter, TEnum value)
         {
             bsonWriter.WriteName(ValueFieldName);
-            BsonSerializer.Serialize(bsonWriter, typeof(int), (int)value);
+            bsonWriter.WriteInt32(Convert.ToInt32(value));
         }
-        
-        protected override object ReadValue(BsonReader bsonReader, Type actualType)
+
+        protected override TEnum ReadValue(IBsonReader bsonReader, Type actualType)
         {
             bsonReader.ReadName(ValueFieldName);
 
             var value = BsonSerializer.Deserialize(bsonReader, typeof(int));
-            return Enum.ToObject(actualType, value);
+            return (TEnum)Enum.ToObject(actualType, value);
         }
     }
 }

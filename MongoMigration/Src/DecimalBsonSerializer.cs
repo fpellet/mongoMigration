@@ -5,19 +5,18 @@ using MongoDB.Bson.Serialization;
 
 namespace MongoMigration
 {
-    public class DecimalBsonSerializer : DocumentBsonSerializerBase
+    public class DecimalBsonSerializer : DocumentBsonSerializerBase<decimal>
     {
         private const string ValueFieldName = "_v";
 
-        protected override void Serialize(BsonWriter bsonWriter, object value)
+        protected override void Serialize(IBsonWriter bsonWriter, decimal value)
         {
             bsonWriter.WriteName(ValueFieldName);
 
-            var decimalValue = (decimal)value;
-            BsonSerializer.Serialize(bsonWriter, typeof(string), decimalValue.ToString(CultureInfo.InvariantCulture));
+            BsonSerializer.Serialize(bsonWriter, typeof(string), value.ToString(CultureInfo.InvariantCulture));
         }
 
-        protected override object ReadValue(BsonReader bsonReader, Type actualType)
+        protected override decimal ReadValue(IBsonReader bsonReader, Type actualType)
         {
             bsonReader.ReadName(ValueFieldName);
 

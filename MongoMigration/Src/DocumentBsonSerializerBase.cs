@@ -1,25 +1,35 @@
 using System;
-using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
-using MongoDB.Bson.Serialization.Options;
 using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoMigration
 {
-    public abstract class DocumentBsonSerializerBase : IBsonSerializer
+    public abstract class DocumentBsonSerializerBase<TValueType> : IBsonSerializer<TValueType>
     {
         private readonly IDiscriminatorConvention _discriminatorConvention = BsonSerializer.LookupDiscriminatorConvention(typeof(object));
 
-        public void Serialize(BsonWriter bsonWriter, Type nominalType, object value, IBsonSerializationOptions options)
+        public Type ValueType
         {
+            get { return typeof(TValueType); }
+        }
+
+        public void Serialize(BsonSerializationContext context, BsonSerializationArgs args, object value)
+        {
+            Serialize(context, args, (TValueType)value);
+        }
+
+        public void Serialize(BsonSerializationContext context, BsonSerializationArgs args, TValueType value)
+        {
+            var bsonWriter = context.Writer;
+
             bsonWriter.WriteStartDocument();
 
             var actualType = value.GetType();
-            if (IsNominalType(nominalType, actualType))
+            if (IsNominalType(args.NominalType, actualType))
             {
-                WriteDiscriminator(bsonWriter, actualType);
+                WriteDiscriminator(context, args, actualType);
             }
 
             Serialize(bsonWriter, value);
@@ -32,22 +42,27 @@ namespace MongoMigration
             return actualType.GetUnderlyingTypeIfNullable() != nominalType.GetUnderlyingTypeIfNullable();
         }
 
-        private void WriteDiscriminator(BsonWriter bsonWriter, Type actualType)
+        private void WriteDiscriminator(BsonSerializationContext context, BsonSerializationArgs args, Type actualType)
         {
             var discriminator = _discriminatorConvention.GetDiscriminator(typeof(object), actualType);
 
-            bsonWriter.WriteName(_discriminatorConvention.ElementName);
-            BsonValueSerializer.Instance.Serialize(bsonWriter, typeof(BsonValue), discriminator, null);
+            context.Writer.WriteName(_discriminatorConvention.ElementName);
+            BsonValueSerializer.Instance.Serialize(context, args, discriminator);
         }
 
-        protected abstract void Serialize(BsonWriter bsonWriter, object value);
+        protected abstract void Serialize(IBsonWriter bsonWriter, TValueType value);
 
-        public object Deserialize(BsonReader bsonReader, Type nominalType, IBsonSerializationOptions options)
+        object IBsonSerializer.Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
         {
-            return Deserialize(bsonReader, nominalType, nominalType, options);
+            return Deserialize(context, args);
         }
 
-        public object Deserialize(BsonReader bsonReader, Type nominalType, Type actualType, IBsonSerializationOptions options)
+        public TValueType Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+        {
+            return Deserialize(context.Reader, args.NominalType, ValueType);
+        }
+
+        public TValueType Deserialize(IBsonReader bsonReader, Type nominalType, Type actualType)
         {
             bsonReader.ReadStartDocument();
 
@@ -63,17 +78,12 @@ namespace MongoMigration
             return value;
         }
 
-        private void SkipDiscriminator(BsonReader bsonReader)
+        private void SkipDiscriminator(IBsonReader bsonReader)
         {
             bsonReader.ReadName(_discriminatorConvention.ElementName);
             bsonReader.SkipValue();
         }
 
-        protected abstract object ReadValue(BsonReader bsonReader, Type actualType);
-
-        public IBsonSerializationOptions GetDefaultSerializationOptions()
-        {
-            return new DocumentSerializationOptions();
-        }
+        protected abstract TValueType ReadValue(IBsonReader bsonReader, Type actualType);
     }
 }

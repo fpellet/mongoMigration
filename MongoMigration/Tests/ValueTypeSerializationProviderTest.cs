@@ -23,7 +23,7 @@ namespace MongoMigration.Tests
 
             var result = provider.GetSerializer(typeof(StructWithProperty));
 
-            Check.That(result).IsInstanceOf<ValueTypeBsonSerializer>();
+            Check.That(result).IsInstanceOf<ValueTypeBsonSerializer<StructWithProperty>>();
         }
 
         [TestMethod]

@@ -34,7 +34,7 @@ namespace MongoMigration.Tests
 
             var result = provider.GetSerializer(typeof(EnumB));
 
-            Check.That(result).IsInstanceOf<EnumBsonSerializer>();
+            Check.That(result).IsInstanceOf<EnumBsonSerializer<EnumB>>();
         }
 
         [TestMethod]

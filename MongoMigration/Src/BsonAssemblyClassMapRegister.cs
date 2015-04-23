@@ -40,8 +40,13 @@ namespace MongoMigration
 
         private static void RegisterInBsonSerializer(Type type)
         {
-            var classMap = new BsonClassMapWithAssemblyName(type);
-            BsonClassMap.RegisterClassMap(classMap);
+            BsonClassMap.RegisterClassMap(CreateGenericSerializer(typeof(BsonClassMapWithAssemblyName<>), type));
+        }
+
+        private static BsonClassMap CreateGenericSerializer(Type serializerTypeDefinition, params Type[] typeArguments)
+        {
+            var serializerType = serializerTypeDefinition.MakeGenericType(typeArguments);
+            return (BsonClassMap)Activator.CreateInstance(serializerType);
         }
     }
 }
