@@ -37,8 +37,10 @@ namespace MongoMigration
             bsonWriter.WriteEndDocument();
         }
 
-        private static bool IsNominalType(Type nominalType, Type actualType)
+        private bool IsNominalType(Type nominalType, Type actualType)
         {
+            nominalType = nominalType ?? ValueType;
+
             return actualType.GetUnderlyingTypeIfNullable() != nominalType.GetUnderlyingTypeIfNullable();
         }
 
