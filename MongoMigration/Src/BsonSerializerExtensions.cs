@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.IO;
+﻿using System.IO;
+using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 
 namespace MongoMigration
@@ -7,14 +8,14 @@ namespace MongoMigration
     {
         public static byte[] Serialize<T>(T value)
         {
-            using (var buffer = new BsonBuffer())
+            using (var buffer = new MemoryStream())
             {
-                using (var bsonWriter = BsonWriter.Create(buffer))
+                using (var bsonWriter = new BsonBinaryWriter(buffer))
                 {
                     BsonSerializer.Serialize(bsonWriter, value);
                 }
 
-                return buffer.ToByteArray();
+                return buffer.ToArray();
             }
         }
     }
