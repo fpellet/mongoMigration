@@ -67,7 +67,8 @@ namespace MongoMigration
 
         private static void EnableLocalTimeZoneOnDateTime()
         {
-            Try(() => BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeSerializationOptions.LocalInstance)));
+            var serializer = new DateTimeSerializer(DateTimeKind.Local);
+            Try(() => BsonSerializer.RegisterSerializer(typeof(DateTime), serializer));
         }
 
         private void EnableEnumConverter()
