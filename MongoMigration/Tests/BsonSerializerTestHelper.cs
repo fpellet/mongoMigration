@@ -1,7 +1,4 @@
-using System.IO;
 using MongoDB.Bson;
-using MongoDB.Bson.IO;
-using MongoDB.Bson.Serialization;
 
 namespace MongoMigration.Tests
 {
@@ -16,15 +13,8 @@ namespace MongoMigration.Tests
 
         public static byte[] Serialize<T>(T value)
         {
-            using (var buffer = new MemoryStream())
-            {
-                using (var bsonWriter = new BsonBinaryWriter(buffer))
-                {
-                    BsonSerializer.Serialize(bsonWriter, value);
-                }
-
-                return buffer.ToArray();
-            }
+            var serialize = new BsonSerializer<T>();
+            return serialize.Serialize(value);
         }
 
         public static BsonDocument Deserialize(byte[] data)
@@ -34,7 +24,8 @@ namespace MongoMigration.Tests
 
         public static T Deserialize<T>(byte[] data)
         {
-            return BsonSerializer.Deserialize<T>(data);
+            var serialize = new BsonSerializer<T>();
+            return serialize.Deserialize(data);
         }
     }
 }

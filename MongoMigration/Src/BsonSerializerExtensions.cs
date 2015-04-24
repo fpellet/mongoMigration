@@ -12,7 +12,7 @@ namespace MongoMigration
             {
                 using (var bsonWriter = new BsonBinaryWriter(buffer))
                 {
-                    BsonSerializer.Serialize(bsonWriter, value);
+                    BsonSerializer.Serialize(bsonWriter, value, args: new BsonSerializationArgs(typeof(T), false, false));
                 }
 
                 return buffer.ToArray();

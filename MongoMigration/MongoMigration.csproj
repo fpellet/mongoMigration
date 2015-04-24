@@ -88,6 +88,7 @@
     <Compile Include="Src\ValueTypeSerializationProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tests\BsonAssemblyClassMapRegisterTest.cs" />
+    <Compile Include="Tests\BsonSerializerTest.cs" />
     <Compile Include="Tests\BsonSerializerTestHelper.cs" />
     <Compile Include="Tests\DecimalBsonSerializerTest.cs" />
     <Compile Include="Tests\EnumBsonSerializerTest.cs" />
