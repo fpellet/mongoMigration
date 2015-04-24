@@ -6,13 +6,18 @@ using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoMigration
 {
-    public abstract class DocumentBsonSerializerBase<TValueType> : IBsonSerializer<TValueType>
+    public abstract class DocumentBsonSerializerBase<TValueType> : IBsonSerializer<TValueType>, IBsonPolymorphicSerializer
     {
-        private readonly IDiscriminatorConvention _discriminatorConvention = BsonSerializer.LookupDiscriminatorConvention(typeof(object));
+        private readonly IDiscriminatorConvention _discriminatorConvention = BsonSerializer.LookupDiscriminatorConvention(typeof(TValueType));
 
         public Type ValueType
         {
             get { return typeof(TValueType); }
+        }
+
+        public bool IsDiscriminatorCompatibleWithObjectSerializer
+        {
+            get { return true; }
         }
 
         public void Serialize(BsonSerializationContext context, BsonSerializationArgs args, object value)
@@ -26,11 +31,7 @@ namespace MongoMigration
 
             bsonWriter.WriteStartDocument();
 
-            var actualType = value.GetType();
-            if (IsNominalType(args.NominalType, actualType))
-            {
-                WriteDiscriminator(context, args, actualType);
-            }
+            WriteDiscriminator(context, args.NominalType, value.GetType());
 
             Serialize(bsonWriter, value);
 
@@ -44,12 +45,16 @@ namespace MongoMigration
             return actualType.GetUnderlyingTypeIfNullable() != nominalType.GetUnderlyingTypeIfNullable();
         }
 
-        private void WriteDiscriminator(BsonSerializationContext context, BsonSerializationArgs args, Type actualType)
+        private void WriteDiscriminator(BsonSerializationContext context, Type nominalType, Type actualType)
         {
-            var discriminator = _discriminatorConvention.GetDiscriminator(typeof(object), actualType);
+            var discriminator = _discriminatorConvention.GetDiscriminator(nominalType, actualType);
+            if (discriminator == null)
+            {
+                return;
+            }
 
             context.Writer.WriteName(_discriminatorConvention.ElementName);
-            BsonValueSerializer.Instance.Serialize(context, args, discriminator);
+            BsonValueSerializer.Instance.Serialize(context, discriminator);
         }
 
         protected abstract void Serialize(IBsonWriter bsonWriter, TValueType value);
@@ -64,7 +69,7 @@ namespace MongoMigration
             return Deserialize(context.Reader, args.NominalType, ValueType);
         }
 
-        public TValueType Deserialize(IBsonReader bsonReader, Type nominalType, Type actualType)
+        private TValueType Deserialize(IBsonReader bsonReader, Type nominalType, Type actualType)
         {
             bsonReader.ReadStartDocument();
 
