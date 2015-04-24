@@ -82,6 +82,7 @@
     <Compile Include="Src\EnumSerializationProvider.cs" />
     <Compile Include="Src\InitializeBsonSerializer.cs" />
     <Compile Include="Src\ISerializer.cs" />
+    <Compile Include="Src\ObjectBsonSerializerWithEnumSupport.cs" />
     <Compile Include="Src\TypeExtensions.cs" />
     <Compile Include="Src\ValueTypeBsonSerializer.cs" />
     <Compile Include="Src\ValueTypeSerializationProvider.cs" />

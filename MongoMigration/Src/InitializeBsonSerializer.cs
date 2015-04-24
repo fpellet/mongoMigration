@@ -46,7 +46,7 @@ namespace MongoMigration
                 EnableValueTypeConverter();
                 EnableDecimalConverter();
                 EnableEnumConverter();
-
+                
                 _assembliesClassMapRegister.RegisterAllTypesOfAllApplicationAssemblies();
 
                 _isInitialized = true;
@@ -73,6 +73,7 @@ namespace MongoMigration
         private void EnableEnumConverter()
         {
             BsonSerializer.RegisterSerializationProvider(new EnumSerializationProvider());
+            BsonSerializer.RegisterSerializer(typeof(object), new ObjectBsonSerializerWithEnumSupport());
         }
 
         private static void Try(Action action)
